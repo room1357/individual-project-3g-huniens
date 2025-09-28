@@ -1,6 +1,8 @@
 # pemrograman_mobile
 
-A new Flutter project.
+Nama  : **Hanin Mariam Abiyyah Hendrik**  
+Kelas : **3G - SIB**  
+NIM   : **2341760154**
 
 ## Getting Started
 
