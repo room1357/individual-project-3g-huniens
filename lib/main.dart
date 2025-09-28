@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
-import 'models/expense.dart';
-import 'models/expense_manage.dart';
+//import 'models/expense.dart';
+//import 'models/expense_manage.dart';
 
 void main() {
-  final sampleExpenses = [
+    runApp(const MyApp());
+  /*final sampleExpenses = [
     Expense(
       id: '1',
       title: 'Belanja Bulanan',
@@ -27,7 +28,7 @@ void main() {
   print("Pengeluaran tertinggi: ${ExpenseManager.getHighestExpense(sampleExpenses)?.title}");
   print("Pengeluaran bulan 9/2024: ${ExpenseManager.getExpensesByMonth(sampleExpenses, 9, 2024).length} item");
   print("Cari 'bensin': ${ExpenseManager.searchExpenses(sampleExpenses, 'bensin').length} item");
-  print("Rata-rata harian: Rp ${ExpenseManager.getAverageDaily(sampleExpenses)}");
+  print("Rata-rata harian: Rp ${ExpenseManager.getAverageDaily(sampleExpenses)}");*/
 }
 
 
