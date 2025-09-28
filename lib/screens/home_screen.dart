@@ -3,6 +3,8 @@ import 'login_screen.dart';
 import 'expense_list_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
+import 'add_expense_screen.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -89,6 +91,17 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => const SettingsScreen(),
                         ),
+                      );
+                    },
+                  ),
+                    _buildDashboardCard(
+                    'Tambah Pengeluaran',
+                    Icons.add_circle,
+                    Colors.red,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddExpenseScreen()),
                       );
                     },
                   ),
