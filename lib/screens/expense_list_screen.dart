@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
+import '../screens/edit_expense_screen.dart';
 
 class ExpenseListScreen extends StatefulWidget {
   const ExpenseListScreen({super.key});
@@ -265,28 +266,50 @@ String _calculateAverage(List<Expense> expenses) {
   }
 
   // 🔹 Dialog detail
-  void _showExpenseDetails(BuildContext context, Expense expense) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(expense.title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Jumlah: ${expense.formattedAmount}'),
-            const SizedBox(height: 8),
-            Text('Kategori: ${expense.category}'),
-            const SizedBox(height: 8),
-            Text('Tanggal: ${expense.formattedDate}'),
-            const SizedBox(height: 8),
-            Text('Deskripsi: ${expense.description}'),
-          ],
+void _showExpenseDetails(BuildContext context, Expense expense) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(expense.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Jumlah: ${expense.formattedAmount}'),
+          const SizedBox(height: 8),
+          Text('Kategori: ${expense.category}'),
+          const SizedBox(height: 8),
+          Text('Tanggal: ${expense.formattedDate}'),
+          const SizedBox(height: 8),
+          Text('Deskripsi: ${expense.description}'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Tutup'),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
+        TextButton(
+          onPressed: () async {
+            Navigator.pop(context); // tutup dialog dulu
+            final updatedExpense = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditExpenseScreen(expense: expense),
+              ),
+            );
+
+            if (updatedExpense != null) {
+              setState(() {
+                final index = expenses.indexWhere((e) => e.id == updatedExpense.id);
+                if (index != -1) {
+                  expenses[index] = updatedExpense;
+                  _filterExpenses(); // refresh tampilan
+                }
+              });
+            }
+          },
+          child: const Text('Edit'),
           ),
         ],
       ),
