@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
-import '../services/expense_service.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -15,44 +14,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-
   String _selectedCategory = 'Makanan';
   DateTime _selectedDate = DateTime.now();
-
-  void _saveExpense() {
-    if (_formKey.currentState!.validate()) {
-      final expense = Expense(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        title: _titleController.text,
-        amount: double.parse(_amountController.text),
-        category: _selectedCategory,
-        date: _selectedDate,
-        description: _descriptionController.text,
-      );
-
-      ExpenseService.addExpense(expense);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Pengeluaran berhasil ditambahkan")),
-      );
-
-      Navigator.pop(context);
-    }
-  }
-
-  void _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +25,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
@@ -80,22 +43,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) return "Jumlah wajib diisi";
-                  if (double.tryParse(value) == null) return "Masukkan angka valid";
+                  if (double.tryParse(value) == null) return "Harus angka";
                   return null;
                 },
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
-                items: ["Makanan", "Transportasi", "Utilitas", "Hiburan", "Pendidikan"]
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                decoration: const InputDecoration(labelText: "Kategori"),
+                items: ['Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
+                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
                     .toList(),
                 onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value!;
-                  });
+                  setState(() => _selectedCategory = value!);
                 },
-                decoration: const InputDecoration(labelText: "Kategori"),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -107,18 +68,41 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text("Tanggal: ${_selectedDate.toLocal()}".split(' ')[0]),
+                    child: Text(
+                      "Tanggal: ${_selectedDate.toLocal()}".split(' ')[0],
+                    ),
                   ),
                   TextButton(
-                    onPressed: _pickDate,
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() => _selectedDate = picked);
+                      }
+                    },
                     child: const Text("Pilih Tanggal"),
-                  ),
+                  )
                 ],
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _saveExpense,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    final newExpense = Expense(
+                      id: DateTime.now().toString(),
+                      title: _titleController.text,
+                      amount: double.parse(_amountController.text),
+                      category: _selectedCategory,
+                      date: _selectedDate,
+                      description: _descriptionController.text,
+                    );
+                    Navigator.pop(context, newExpense); // kirim balik ke list
+                  }
+                },
                 child: const Text("Simpan"),
               ),
             ],
