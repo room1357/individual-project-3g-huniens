@@ -4,6 +4,8 @@ import 'expense_list_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'add_expense_screen.dart';
+import 'category_screen.dart';
+
 
 
 class HomeScreen extends StatelessWidget {
@@ -105,6 +107,19 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  _buildDashboardCard(
+                  'Kelola Kategori',
+                  Icons.category,
+                  Colors.teal,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CategoryScreen(),
+                      ),
+                    );
+                  },
+                ),
                 ],
               ),
             ),

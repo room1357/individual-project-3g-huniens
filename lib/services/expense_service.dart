@@ -1,4 +1,6 @@
 import '../models/expense.dart';
+import '../models/category.dart';
+
 
 class ExpenseService {
   // Simpan data sementara (in-memory)
@@ -38,5 +40,34 @@ class ExpenseService {
   static void seed(List<Expense> data) {
     _expenses.clear();
     _expenses.addAll(data);
+  }
+
+    static final List<Category> _categories = [
+    Category(id: '1', name: 'Makanan'),
+    Category(id: '2', name: 'Transportasi'),
+    Category(id: '3', name: 'Utilitas'),
+    Category(id: '4', name: 'Hiburan'),
+    Category(id: '5', name: 'Pendidikan'),
+  ];
+
+  // Ambil semua kategori
+  static List<Category> getAllCategories() => List.unmodifiable(_categories);
+
+  // Tambah kategori baru
+  static void addCategory(Category category) {
+    _categories.add(category);
+  }
+
+  // Hapus kategori
+  static void deleteCategory(String id) {
+    _categories.removeWhere((cat) => cat.id == id);
+  }
+
+  // Update kategori
+  static void updateCategory(String id, String newName) {
+    final index = _categories.indexWhere((cat) => cat.id == id);
+    if (index != -1) {
+      _categories[index] = Category(id: id, name: newName);
+    }
   }
 }

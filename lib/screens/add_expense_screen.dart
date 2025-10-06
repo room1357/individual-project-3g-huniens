@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
+import '../models/category.dart';
+import '../services/expense_service.dart';
+
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -14,8 +17,29 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  String _selectedCategory = 'Makanan';
+
+  String? _selectedCategory;
+  List<String> _categories = [];
   DateTime _selectedDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  void _loadCategories() {
+    // Ambil kategori dari ExpenseService
+    final categoryList = ExpenseService.getAllCategories();
+
+    setState(() {
+      _categories = categoryList.isEmpty
+          ? ['Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
+          : categoryList.map((c) => c.name).toList();
+
+      _selectedCategory = _categories.first;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +72,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 },
               ),
               const SizedBox(height: 12),
+
+              // 🔽 Dropdown kategori yang sudah dinamis
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
                 decoration: const InputDecoration(labelText: "Kategori"),
-                items: ['Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
-                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                items: _categories
+                    .map((cat) =>
+                        DropdownMenuItem(value: cat, child: Text(cat)))
                     .toList(),
                 onChanged: (value) {
-                  setState(() => _selectedCategory = value!);
+                  setState(() => _selectedCategory = value);
                 },
               ),
+
               const SizedBox(height: 12),
               TextFormField(
                 controller: _descriptionController,
@@ -65,6 +93,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 maxLines: 2,
               ),
               const SizedBox(height: 12),
+
               Row(
                 children: [
                   Expanded(
@@ -96,11 +125,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       id: DateTime.now().toString(),
                       title: _titleController.text,
                       amount: double.parse(_amountController.text),
-                      category: _selectedCategory,
+                      category: _selectedCategory!,
                       date: _selectedDate,
                       description: _descriptionController.text,
                     );
-                    Navigator.pop(context, newExpense); // kirim balik ke list
+                    Navigator.pop(context, newExpense);
                   }
                 },
                 child: const Text("Simpan"),
