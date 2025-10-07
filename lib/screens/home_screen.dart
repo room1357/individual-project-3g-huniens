@@ -5,6 +5,7 @@ import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'add_expense_screen.dart';
 import 'category_screen.dart';
+import 'statistics_screen.dart';
 
 
 
@@ -117,9 +118,22 @@ class HomeScreen extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) => const CategoryScreen(),
                       ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
+                  _buildDashboardCard(
+                    'Statistik',
+                    Icons.bar_chart,
+                    Colors.teal,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const StatisticsScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

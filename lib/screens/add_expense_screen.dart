@@ -129,6 +129,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       date: _selectedDate,
                       description: _descriptionController.text,
                     );
+
+                    // 🟢 Tambahkan baris ini biar data masuk ke service
+                    ExpenseService.addExpense(newExpense);
+
                     Navigator.pop(context, newExpense);
                   }
                 },
