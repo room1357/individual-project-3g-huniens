@@ -25,4 +25,13 @@ class UserService {
   static void logout() {
     _loggedInUser = null;
   }
+
+  // 🔹 Tambahkan ini
+  static void updateUser(User updatedUser) {
+    final index = _users.indexWhere((u) => u.username == updatedUser.username);
+    if (index != -1) {
+      _users[index] = updatedUser;
+      _loggedInUser = updatedUser;
+    }
+  }
 }
