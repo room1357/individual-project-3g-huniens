@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../screens/edit_expense_screen.dart';
 import '../screens/add_expense_screen.dart';
+import '../services/storage_service.dart';
+import '../services/expense_service.dart';
 
 
 
@@ -151,6 +153,36 @@ Widget build(BuildContext context) {
           ),
         ),
 
+// 💾 Tombol Export Data
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    children: [
+      ElevatedButton.icon(
+        onPressed: () async {
+          final path = await StorageService.exportToCSV(filteredExpenses);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Data berhasil diexport ke $path')),
+          );
+        },
+        icon: const Icon(Icons.table_chart),
+        label: const Text('Export CSV'),
+      ),
+      ElevatedButton.icon(
+        onPressed: () async {
+          final path = await StorageService.exportToPDF(filteredExpenses);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Data berhasil diexport ke $path')),
+          );
+        },
+        icon: const Icon(Icons.picture_as_pdf),
+        label: const Text('Export PDF'),
+      ),
+    ],
+  ),
+),
+
         // 📋 ListView
         Expanded(
           child: filteredExpenses.isEmpty
@@ -202,12 +234,14 @@ Widget build(BuildContext context) {
           MaterialPageRoute(builder: (context) => const AddExpenseScreen()),
         );
 
-        if (newExpense != null && newExpense is Expense) {
-          setState(() {
-            expenses.add(newExpense);
-            _filterExpenses(); // refresh list
-          });
-        }
+      if (newExpense != null && newExpense is Expense) {
+        setState(() {
+          expenses.add(newExpense);
+          ExpenseService.addExpense(newExpense); // 🟢 Simpan ke service biar bisa diexport
+          _filterExpenses(); // refresh list
+        });
+      }
+
       },
       backgroundColor: Colors.blue,
       child: const Icon(Icons.add),
