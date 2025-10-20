@@ -6,6 +6,8 @@ import 'settings_screen.dart';
 import 'add_expense_screen.dart';
 import 'category_screen.dart';
 import 'statistics_screen.dart';
+import '../services/user_service.dart';
+
 
 
 
@@ -21,7 +23,10 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              // Logout dengan pushAndRemoveUntil
+              // Hapus user yang sedang login
+              UserService.logout();
+
+              // Arahkan kembali ke halaman login
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginScreen()),

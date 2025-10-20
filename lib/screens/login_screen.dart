@@ -14,8 +14,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
-    final success = UserService.login(
+  @override
+  void initState() {
+    super.initState();
+    _checkLoggedIn();
+  }
+
+  Future<void> _checkLoggedIn() async {
+    final isLoggedIn = await UserService.loadLoggedInUser();
+    if (isLoggedIn) {
+      // Jika sudah login sebelumnya → langsung ke Home
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    }
+  }
+
+  Future<void> _login() async {
+    final success = await UserService.login(
       _usernameController.text,
       _passwordController.text,
     );
@@ -27,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username atau password salah!')),
+        const SnackBar(content: Text('Username/email atau password salah!')),
       );
     }
   }
@@ -41,7 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo
             Container(
               width: 100,
               height: 100,
@@ -53,18 +69,16 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Field username
             TextField(
               controller: _usernameController,
               decoration: const InputDecoration(
-                labelText: 'Username',
+                labelText: 'Username atau Email',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person),
               ),
             ),
             const SizedBox(height: 16),
 
-            // Field password
             TextField(
               controller: _passwordController,
               obscureText: true,
@@ -76,7 +90,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Tombol login
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -93,7 +106,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Link ke halaman register
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
