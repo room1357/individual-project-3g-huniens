@@ -5,8 +5,6 @@ import '../screens/add_expense_screen.dart';
 import '../services/storage_service.dart';
 import '../services/expense_service.dart';
 
-
-
 class ExpenseListScreen extends StatefulWidget {
   const ExpenseListScreen({super.key});
 
@@ -15,74 +13,7 @@ class ExpenseListScreen extends StatefulWidget {
 }
 
 class _ExpenseListScreenState extends State<ExpenseListScreen> {
-  // Data sample menggunakan List<Expense>
-  final List<Expense> expenses = [
-    Expense(
-      id: '1',
-      title: 'Belanja Bulanan',
-      amount: 150000,
-      category: 'Makanan',
-      date: DateTime(2024, 9, 15),
-      description: 'Belanja kebutuhan bulanan di supermarket',
-    ),
-    Expense(
-      id: '2',
-      title: 'Bensin Motor',
-      amount: 50000,
-      category: 'Transportasi',
-      date: DateTime(2024, 9, 14),
-      description: 'Isi bensin motor untuk transportasi',
-    ),
-    Expense(
-      id: '3',
-      title: 'Kopi di Cafe',
-      amount: 25000,
-      category: 'Makanan',
-      date: DateTime(2024, 9, 14),
-      description: 'Ngopi pagi dengan teman',
-    ),
-    Expense(
-      id: '4',
-      title: 'Tagihan Internet',
-      amount: 300000,
-      category: 'Utilitas',
-      date: DateTime(2024, 9, 13),
-      description: 'Tagihan internet bulanan',
-    ),
-    Expense(
-      id: '5',
-      title: 'Tiket Bioskop',
-      amount: 100000,
-      category: 'Hiburan',
-      date: DateTime(2024, 9, 12),
-      description: 'Nonton film weekend bersama keluarga',
-    ),
-    Expense(
-      id: '6',
-      title: 'Beli Buku',
-      amount: 75000,
-      category: 'Pendidikan',
-      date: DateTime(2024, 9, 11),
-      description: 'Buku pemrograman untuk belajar',
-    ),
-    Expense(
-      id: '7',
-      title: 'Makan Siang',
-      amount: 35000,
-      category: 'Makanan',
-      date: DateTime(2024, 9, 11),
-      description: 'Makan siang di restoran',
-    ),
-    Expense(
-      id: '8',
-      title: 'Ongkos Bus',
-      amount: 10000,
-      category: 'Transportasi',
-      date: DateTime(2024, 9, 10),
-      description: 'Ongkos perjalanan harian ke kampus',
-    ),
-  ];
-
+  List<Expense> expenses = [];
   List<Expense> filteredExpenses = [];
   String selectedCategory = 'Semua';
   TextEditingController searchController = TextEditingController();
@@ -90,165 +21,168 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   @override
   void initState() {
     super.initState();
-    filteredExpenses = expenses; // default tampil semua
+    _loadExpenses();
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text('Daftar Pengeluaran'),
-      backgroundColor: Colors.blue,
-    ),
-    body: Column(
-      children: [
-        // 🔎 Search bar
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: searchController,
-            decoration: const InputDecoration(
-              hintText: 'Cari pengeluaran...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+  void _loadExpenses() {
+    setState(() {
+      expenses = ExpenseService.getAll();
+      filteredExpenses = expenses;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Daftar Pengeluaran'),
+        backgroundColor: Colors.blue,
+      ),
+      body: Column(
+        children: [
+          // 🔎 Search bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: searchController,
+              decoration: const InputDecoration(
+                hintText: 'Cari pengeluaran...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => _filterExpenses(),
             ),
-            onChanged: (value) => _filterExpenses(),
           ),
-        ),
 
-        // 🔖 Category filter
-        SizedBox(
-          height: 50,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: ['Semua', 'Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
-                .map((category) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(category),
-                        selected: selectedCategory == category,
-                        onSelected: (selected) {
-                          setState(() {
-                            selectedCategory = category;
-                            _filterExpenses();
-                          });
-                        },
-                      ),
-                    ))
-                .toList(),
+          // 🔖 Category filter
+          SizedBox(
+            height: 50,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: ['Semua', 'Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
+                  .map((category) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(category),
+                          selected: selectedCategory == category,
+                          onSelected: (selected) {
+                            setState(() {
+                              selectedCategory = category;
+                              _filterExpenses();
+                            });
+                          },
+                        ),
+                      ))
+                  .toList(),
+            ),
           ),
-        ),
 
-        // 📊 Statistik
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatCard('Total', _calculateTotal(filteredExpenses)),
-              _buildStatCard('Jumlah', '${filteredExpenses.length} item'),
-              _buildStatCard('Rata-rata', _calculateAverage(filteredExpenses)),
-            ],
+          // 📊 Statistik
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatCard('Total', _calculateTotal(filteredExpenses)),
+                _buildStatCard('Jumlah', '${filteredExpenses.length} item'),
+                _buildStatCard('Rata-rata', _calculateAverage(filteredExpenses)),
+              ],
+            ),
           ),
-        ),
 
-// 💾 Tombol Export Data
-Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: [
-      ElevatedButton.icon(
-        onPressed: () async {
-          final path = await StorageService.exportToCSV(filteredExpenses);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Data berhasil diexport ke $path')),
-          );
-        },
-        icon: const Icon(Icons.table_chart),
-        label: const Text('Export CSV'),
-      ),
-      ElevatedButton.icon(
-        onPressed: () async {
-          final path = await StorageService.exportToPDF(filteredExpenses);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Data berhasil diexport ke $path')),
-          );
-        },
-        icon: const Icon(Icons.picture_as_pdf),
-        label: const Text('Export PDF'),
-      ),
-    ],
-  ),
-),
-
-        // 📋 ListView
-        Expanded(
-          child: filteredExpenses.isEmpty
-              ? const Center(child: Text('Tidak ada pengeluaran ditemukan'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: filteredExpenses.length,
-                  itemBuilder: (context, index) {
-                    final expense = filteredExpenses[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      elevation: 2,
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getCategoryColor(expense.category),
-                          child: Icon(
-                            _getCategoryIcon(expense.category),
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(
-                          expense.title,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        subtitle: Text('${expense.category} • ${expense.formattedDate}'),
-                        trailing: Text(
-                          expense.formattedAmount,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.red[600],
-                          ),
-                        ),
-                        onTap: () => _showExpenseDetails(context, expense),
-                      ),
+          // 💾 Tombol Export Data
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final path = await StorageService.exportToCSV(filteredExpenses);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Data berhasil diexport ke $path')),
                     );
                   },
+                  icon: const Icon(Icons.table_chart),
+                  label: const Text('Export CSV'),
                 ),
-        ),
-      ],
-    ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final path = await StorageService.exportToPDF(filteredExpenses);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Data berhasil diexport ke $path')),
+                    );
+                  },
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text('Export PDF'),
+                ),
+              ],
+            ),
+          ),
 
-    // ➕ Tombol tambah pengeluaran
-    floatingActionButton: FloatingActionButton(
-      onPressed: () async {
-        final newExpense = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddExpenseScreen()),
-        );
+          // 📋 ListView
+          Expanded(
+            child: filteredExpenses.isEmpty
+                ? const Center(child: Text('Tidak ada pengeluaran ditemukan'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: filteredExpenses.length,
+                    itemBuilder: (context, index) {
+                      final expense = filteredExpenses[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        elevation: 2,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: _getCategoryColor(expense.category),
+                            child: Icon(
+                              _getCategoryIcon(expense.category),
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          title: Text(
+                            expense.title,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: Text('${expense.category} • ${expense.formattedDate}'),
+                          trailing: Text(
+                            expense.formattedAmount,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.red[600],
+                            ),
+                          ),
+                          onTap: () => _showExpenseDetails(context, expense),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
 
-      if (newExpense != null && newExpense is Expense) {
-        setState(() {
-          expenses.add(newExpense);
-          ExpenseService.addExpense(newExpense); // 🟢 Simpan ke service biar bisa diexport
-          _filterExpenses(); // refresh list
-        });
-      }
+      // ➕ Tombol tambah pengeluaran
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final newExpense = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddExpenseScreen()),
+          );
 
-      },
-      backgroundColor: Colors.blue,
-      child: const Icon(Icons.add),
-    ),
-  );
-}
-
+          if (newExpense != null && newExpense is Expense) {
+            setState(() {
+              _loadExpenses(); // reload dari service, bukan tambah manual
+            });
+          }
+        },
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
 
   // 🔹 Filter data
   void _filterExpenses() {
@@ -257,9 +191,7 @@ Padding(
         bool matchesSearch = searchController.text.isEmpty ||
             expense.title.toLowerCase().contains(searchController.text.toLowerCase()) ||
             expense.description.toLowerCase().contains(searchController.text.toLowerCase());
-
         bool matchesCategory = selectedCategory == 'Semua' || expense.category == selectedCategory;
-
         return matchesSearch && matchesCategory;
       }).toList();
     });
@@ -275,19 +207,17 @@ Padding(
     );
   }
 
-String _calculateTotal(List<Expense> expenses) {
-  double total = expenses.fold(0.0, (sum, expense) => sum + expense.amount);
-  return 'Rp ${total.toStringAsFixed(0)}';
-}
+  String _calculateTotal(List<Expense> expenses) {
+    double total = expenses.fold(0.0, (sum, expense) => sum + expense.amount);
+    return 'Rp ${total.toStringAsFixed(0)}';
+  }
 
-String _calculateAverage(List<Expense> expenses) {
-  if (expenses.isEmpty) return 'Rp 0';
-  double avg = expenses.fold(0.0, (sum, expense) => sum + expense.amount) / expenses.length;
-  return 'Rp ${avg.toStringAsFixed(0)}';
-}
+  String _calculateAverage(List<Expense> expenses) {
+    if (expenses.isEmpty) return 'Rp 0';
+    double avg = expenses.fold(0.0, (sum, expense) => sum + expense.amount) / expenses.length;
+    return 'Rp ${avg.toStringAsFixed(0)}';
+  }
 
-
-  // 🔹 Helper kategori
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'makanan':
@@ -322,7 +252,6 @@ String _calculateAverage(List<Expense> expenses) {
     }
   }
 
-  // 🔹 Dialog detail
 void _showExpenseDetails(BuildContext context, Expense expense) {
   showDialog(
     context: context,
@@ -342,10 +271,13 @@ void _showExpenseDetails(BuildContext context, Expense expense) {
         ],
       ),
       actions: [
+        // ❌ tombol tutup
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Tutup'),
         ),
+
+        // 🟢 tombol edit (yang berfungsi lagi)
         TextButton(
           onPressed: () async {
             Navigator.pop(context); // tutup dialog dulu
@@ -356,20 +288,17 @@ void _showExpenseDetails(BuildContext context, Expense expense) {
               ),
             );
 
-            if (updatedExpense != null) {
+            if (updatedExpense != null && updatedExpense is Expense) {
+              ExpenseService.updateExpense(expense.id, updatedExpense);
               setState(() {
-                final index = expenses.indexWhere((e) => e.id == updatedExpense.id);
-                if (index != -1) {
-                  expenses[index] = updatedExpense;
-                  _filterExpenses(); // refresh tampilan
-                }
+                _loadExpenses(); // reload data dari service
               });
             }
           },
           child: const Text('Edit'),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

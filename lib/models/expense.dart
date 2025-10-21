@@ -15,11 +15,33 @@ class Expense {
     required this.description,
   });
 
-  // Getter untuk format tampilan mata uang
+  // 🔹 Format tampilan mata uang
   String get formattedAmount => 'Rp ${amount.toStringAsFixed(0)}';
-  
-  // Getter untuk format tampilan tanggal
-  String get formattedDate {
-    return '${date.day}/${date.month}/${date.year}';
+
+  // 🔹 Format tampilan tanggal
+  String get formattedDate => '${date.day}/${date.month}/${date.year}';
+
+  // 🔹 Konversi ke JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'amount': amount,
+      'category': category,
+      'date': date.toIso8601String(),
+      'description': description,
+    };
+  }
+
+  // 🔹 Buat object dari JSON
+  factory Expense.fromJson(Map<String, dynamic> json) {
+    return Expense(
+      id: json['id'],
+      title: json['title'],
+      amount: (json['amount'] as num).toDouble(),
+      category: json['category'],
+      date: DateTime.parse(json['date']),
+      description: json['description'],
+    );
   }
 }

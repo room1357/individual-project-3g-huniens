@@ -1,48 +1,53 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import '../models/category.dart';
 
-
 class ExpenseService {
-  // Simpan data sementara (in-memory)
   static final List<Expense> _expenses = [];
 
-  // Ambil semua data (read-only)
-  static List<Expense> getAll() => List.unmodifiable(_expenses);
+  // 🔹 Load data dari shared preferences saat app dibuka
+  static Future<void> loadExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('expenses');
 
-  // Tambah expense baru
-  static void addExpense(Expense expense) {
-    _expenses.add(expense);
+    if (data != null) {
+      final decoded = jsonDecode(data) as List;
+      _expenses.clear();
+      _expenses.addAll(decoded.map((e) => Expense.fromJson(e)));
+    }
   }
 
-  // Update expense berdasarkan id
+  // 🔹 Simpan data ke shared preferences
+  static Future<void> saveExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(_expenses.map((e) => e.toJson()).toList());
+    await prefs.setString('expenses', encoded);
+  }
+
+  // 🔹 Tambah expense baru dan langsung simpan
+  static void addExpense(Expense expense) {
+    _expenses.add(expense);
+    saveExpenses();
+  }
+
+  static List<Expense> getAll() => List.unmodifiable(_expenses);
+
   static void updateExpense(String id, Expense updatedExpense) {
     final index = _expenses.indexWhere((e) => e.id == id);
     if (index != -1) {
       _expenses[index] = updatedExpense;
+      saveExpenses();
     }
   }
 
-  // Hapus expense berdasarkan id
   static void deleteExpense(String id) {
     _expenses.removeWhere((e) => e.id == id);
+    saveExpenses();
   }
 
-  // Cari expense berdasarkan id
-  static Expense? findById(String id) {
-    try {
-      return _expenses.firstWhere((e) => e.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // (Opsional) Isi data awal (seed)
-  static void seed(List<Expense> data) {
-    _expenses.clear();
-    _expenses.addAll(data);
-  }
-
-    static final List<Category> _categories = [
+  // 🔹 Kategori default
+  static final List<Category> _categories = [
     Category(id: '1', name: 'Makanan'),
     Category(id: '2', name: 'Transportasi'),
     Category(id: '3', name: 'Utilitas'),
@@ -50,10 +55,9 @@ class ExpenseService {
     Category(id: '5', name: 'Pendidikan'),
   ];
 
-  // Ambil semua kategori
   static List<Category> getAllCategories() => List.unmodifiable(_categories);
 
-  // Tambah kategori baru
+    // Tambah kategori baru
   static void addCategory(Category category) {
     _categories.add(category);
   }
@@ -63,11 +67,10 @@ class ExpenseService {
     _categories.removeWhere((cat) => cat.id == id);
   }
 
-  // Update kategori
-  static void updateCategory(String id, String newName) {
-    final index = _categories.indexWhere((cat) => cat.id == id);
-    if (index != -1) {
-      _categories[index] = Category(id: id, name: newName);
-    }
+  // 🟢 Fungsi untuk mengisi data awal (opsional)
+  static void seed(List<Expense> data) {
+    _expenses.clear();
+    _expenses.addAll(data);
   }
+
 }
