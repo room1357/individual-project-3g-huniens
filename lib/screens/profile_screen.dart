@@ -59,10 +59,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // 🔹 Simpan perubahan ke UserService
     final updatedUser = User(
+      id: UserService.loggedInUser?.id ?? '0',
       username: _username,
       fullname: _fullName,
       email: _email,
-      password: _password,
+      password: _password, 
     );
 
     UserService.updateUser(updatedUser);

@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class Expense {
   final String id;
   final String title;
@@ -5,6 +7,7 @@ class Expense {
   final String category;
   final DateTime date;
   final String description;
+  final String usernameOwner;
 
   Expense({
     required this.id,
@@ -13,35 +16,30 @@ class Expense {
     required this.category,
     required this.date,
     required this.description,
+    required this.usernameOwner,
   });
 
-  // 🔹 Format tampilan mata uang
-  String get formattedAmount => 'Rp ${amount.toStringAsFixed(0)}';
+  String get formattedDate => DateFormat('dd MMM yyyy').format(date);
+  String get formattedAmount =>
+      NumberFormat.currency(locale: 'id', symbol: 'Rp').format(amount);
 
-  // 🔹 Format tampilan tanggal
-  String get formattedDate => '${date.day}/${date.month}/${date.year}';
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'amount': amount,
+    'category': category,
+    'date': date.toIso8601String(),
+    'description': description,
+    'usernameOwner': usernameOwner,
+  };
 
-  // 🔹 Konversi ke JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'amount': amount,
-      'category': category,
-      'date': date.toIso8601String(),
-      'description': description,
-    };
-  }
-
-  // 🔹 Buat object dari JSON
-  factory Expense.fromJson(Map<String, dynamic> json) {
-    return Expense(
-      id: json['id'],
-      title: json['title'],
-      amount: (json['amount'] as num).toDouble(),
-      category: json['category'],
-      date: DateTime.parse(json['date']),
-      description: json['description'],
-    );
-  }
+  factory Expense.fromJson(Map<String, dynamic> json) => Expense(
+    id: json['id'],
+    title: json['title'],
+    amount: (json['amount'] as num).toDouble(),
+    category: json['category'],
+    date: DateTime.parse(json['date']),
+    description: json['description'],
+    usernameOwner: json['usernameOwner'],
+  );
 }

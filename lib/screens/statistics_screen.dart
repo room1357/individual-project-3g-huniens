@@ -20,8 +20,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   void _loadExpenses() {
-    setState(() {
-      expenses = ExpenseService.getAll();
+    setState(() async {
+      expenses = await ExpenseService.getAll();
     });
   }
 

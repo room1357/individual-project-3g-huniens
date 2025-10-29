@@ -5,13 +5,11 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:csv/csv.dart';
 import 'dart:convert';
-import 'dart:html' as html;
-
 import '../models/expense.dart';
 
 class StorageService {
   // ============================================================
-  // 📄 Export ke PDF (Hybrid)
+  // 📄 Export ke PDF (Mobile-friendly)
   // ============================================================
   static Future<String> exportToPDF(List<Expense> expenses) async {
     final pdf = pw.Document();
@@ -51,18 +49,12 @@ class StorageService {
     final bytes = await pdf.save();
 
     if (kIsWeb) {
-      // 🌐 Untuk web → download otomatis
-      final blob = html.Blob([bytes], 'application/pdf');
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      html.AnchorElement(href: url)
-        ..setAttribute("download", "Laporan Pengeluaran.pdf")
-        ..click();
-      html.Url.revokeObjectUrl(url);
-      return "downloaded";
+      // 🌐 Jika dijalankan di web, simpan sementara ke base64 (tidak error)
+      return base64Encode(bytes);
     } else {
-      // 📱 Untuk Android/iOS → simpan ke file lokal
+      // 📱 Simpan ke file lokal (Android/iOS)
       final dir = await getApplicationDocumentsDirectory();
-      final path = "${dir.path}/Laporan Pengeluaran.pdf";
+      final path = "${dir.path}/Laporan_Pengeluaran.pdf";
       final file = File(path);
       await file.writeAsBytes(bytes);
       return path;
@@ -70,7 +62,7 @@ class StorageService {
   }
 
   // ============================================================
-  // 📊 Export ke CSV (Hybrid)
+  // 📊 Export ke CSV (Mobile-friendly)
   // ============================================================
   static Future<String> exportToCSV(List<Expense> expenses) async {
     final List<List<dynamic>> rows = [
@@ -90,18 +82,12 @@ class StorageService {
     final bytes = utf8.encode(csvData);
 
     if (kIsWeb) {
-      // 🌐 Untuk web → download otomatis
-      final blob = html.Blob([bytes], 'text/csv');
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      html.AnchorElement(href: url)
-        ..setAttribute("download", "Laporan Pengeluaran.csv")
-        ..click();
-      html.Url.revokeObjectUrl(url);
-      return "downloaded";
+      // 🌐 Web → return base64 data
+      return base64Encode(bytes);
     } else {
-      // 📱 Untuk Android/iOS → simpan ke file lokal
+      // 📱 Android/iOS → simpan ke file
       final dir = await getApplicationDocumentsDirectory();
-      final path = "${dir.path}/Laporan Pengeluaran.csv";
+      final path = "${dir.path}/Laporan_Pengeluaran.csv";
       final file = File(path);
       await file.writeAsBytes(bytes);
       return path;

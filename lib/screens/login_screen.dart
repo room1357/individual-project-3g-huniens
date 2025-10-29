@@ -22,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _checkLoggedIn() async {
     final isLoggedIn = await UserService.loadLoggedInUser();
+    if (!mounted) return;
     if (isLoggedIn) {
       // Jika sudah login sebelumnya → langsung ke Home
       Navigator.pushReplacement(
@@ -36,13 +37,14 @@ class _LoginScreenState extends State<LoginScreen> {
       _usernameController.text,
       _passwordController.text,
     );
-
+    if (!mounted) return;
     if (success) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Username/email atau password salah!')),
       );
@@ -115,7 +117,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const RegisterScreen()),
+                        builder: (context) => const RegisterScreen(),
+                      ),
                     );
                   },
                   child: const Text('Daftar'),

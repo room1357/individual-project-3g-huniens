@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
-//import '../models/category.dart';
 import '../services/expense_service.dart';
-
+import '../services/user_service.dart';
 
 class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});  
+  const AddExpenseScreen({super.key});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -29,16 +28,53 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   void _loadCategories() {
-    // Ambil kategori dari ExpenseService
     final categoryList = ExpenseService.getAllCategories();
-
     setState(() {
-      _categories = categoryList.isEmpty
-          ? ['Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
-          : categoryList.map((c) => c.name).toList();
-
+      _categories =
+          categoryList.isEmpty
+              ? ['Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
+              : categoryList.toList();
       _selectedCategory = _categories.first;
     });
+  }
+
+  /// ✅ Fungsi untuk menyimpan data expense
+  void _saveExpense() async {
+    // Ambil user yang sedang login
+    final currentUser = UserService.loggedInUser;
+
+    // Jika belum login, tampilkan pesan
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Silakan login terlebih dahulu!')),
+      );
+      return;
+    }
+
+    // Validasi form
+    if (!_formKey.currentState!.validate()) return;
+
+    // Buat objek expense baru, kaitkan dengan user login
+    final newExpense = Expense(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: _titleController.text,
+      amount: double.parse(_amountController.text),
+      category: _selectedCategory ?? 'Lainnya',
+      date: _selectedDate,
+      description: _descriptionController.text,
+      usernameOwner: currentUser.username, // 🔥 penting untuk filter per user
+    );
+
+    // Simpan ke service
+    await ExpenseService.addExpense(newExpense);
+    if (!mounted) return;
+    // Tampilkan notifikasi
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Pengeluaran berhasil disimpan!')),
+    );
+
+    // Kembali ke halaman sebelumnya
+    Navigator.pop(context, newExpense);
   }
 
   @override
@@ -57,8 +93,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: "Judul"),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Judul wajib diisi" : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? "Judul wajib diisi"
+                            : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -66,21 +105,24 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 decoration: const InputDecoration(labelText: "Jumlah"),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return "Jumlah wajib diisi";
+                  if (value == null || value.isEmpty) {
+                    return "Jumlah wajib diisi";
+                  }
                   if (double.tryParse(value) == null) return "Harus angka";
                   return null;
                 },
               ),
               const SizedBox(height: 12),
-
-              // 🔽 Dropdown kategori yang sudah dinamis
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(labelText: "Kategori"),
-                items: _categories
-                    .map((cat) =>
-                        DropdownMenuItem(value: cat, child: Text(cat)))
-                    .toList(),
+                items:
+                    _categories
+                        .map(
+                          (cat) =>
+                              DropdownMenuItem(value: cat, child: Text(cat)),
+                        )
+                        .toList(),
                 onChanged: (value) {
                   setState(() => _selectedCategory = value);
                 },
@@ -93,7 +135,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 maxLines: 2,
               ),
               const SizedBox(height: 12),
-
               Row(
                 children: [
                   Expanded(
@@ -114,28 +155,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       }
                     },
                     child: const Text("Pilih Tanggal"),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final newExpense = Expense(
-                      id: DateTime.now().toString(),
-                      title: _titleController.text,
-                      amount: double.parse(_amountController.text),
-                      category: _selectedCategory!,
-                      date: _selectedDate,
-                      description: _descriptionController.text,
-                    );
-
-                    // 🟢 Tambahkan baris ini biar data masuk ke service
-                    ExpenseService.addExpense(newExpense);
-
-                    Navigator.pop(context, newExpense);
-                  }
-                },
+                onPressed: _saveExpense,
                 child: const Text("Simpan"),
               ),
             ],

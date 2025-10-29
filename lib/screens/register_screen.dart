@@ -29,10 +29,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       final newUser = User(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         username: _usernameController.text,
         fullname: _fullnameController.text,
         email: _emailController.text,
-        password: _passwordController.text,
+        password: _passwordController.text, 
       );
 
       UserService.register(newUser);

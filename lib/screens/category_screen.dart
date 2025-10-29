@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/category.dart';
 import '../services/expense_service.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -12,7 +11,7 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final TextEditingController _controller = TextEditingController();
 
-  List<Category> categories = [];
+  List<String> categories = [];
 
   @override
   void initState() {
@@ -30,14 +29,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final name = _controller.text.trim();
     if (name.isEmpty) return;
 
-    final newCategory = Category(id: DateTime.now().toString(), name: name);
-    ExpenseService.addCategory(newCategory);
+    ExpenseService.addCategory(name);
     _controller.clear();
     _loadCategories();
   }
 
-  void _deleteCategory(String id) {
-    ExpenseService.deleteCategory(id);
+  void _deleteCategory(String category) {
+    ExpenseService.deleteCategory(category);
     _loadCategories();
   }
 
@@ -72,21 +70,22 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: categories.isEmpty
-                  ? const Center(child: Text('Belum ada kategori'))
-                  : ListView.builder(
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        final cat = categories[index];
-                        return ListTile(
-                          title: Text(cat.name),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteCategory(cat.id),
-                          ),
-                        );
-                      },
-                    ),
+              child:
+                  categories.isEmpty
+                      ? const Center(child: Text('Belum ada kategori'))
+                      : ListView.builder(
+                        itemCount: categories.length,
+                        itemBuilder: (context, index) {
+                          final cat = categories[index];
+                          return ListTile(
+                            title: Text(cat),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteCategory(cat),
+                            ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),

@@ -6,8 +6,16 @@ class UserService {
   static User? _loggedInUser;
 
   // ✅ Register user baru
-  static void register(User user) {
+  static Future<void> register(User user) async {
     _users.add(user);
+
+    // Simpan juga ke local storage supaya bisa login otomatis
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('id', user.id);
+    await prefs.setString('username', user.username);
+    await prefs.setString('fullname', user.fullname);
+    await prefs.setString('email', user.email);
+    await prefs.setString('password', user.password);
   }
 
   // ✅ Login pakai username atau email
@@ -22,9 +30,10 @@ class UserService {
 
       // Simpan data user ke local storage
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('id', user.id);
       await prefs.setString('username', user.username);
-      await prefs.setString('email', user.email);
       await prefs.setString('fullname', user.fullname);
+      await prefs.setString('email', user.email);
       await prefs.setString('password', user.password);
 
       return true;
@@ -33,16 +42,20 @@ class UserService {
     }
   }
 
-  // ✅ Cek apakah ada user yang masih login
+  // ✅ Cek apakah ada user yang masih login (ambil dari local storage)
   static Future<bool> loadLoggedInUser() async {
     final prefs = await SharedPreferences.getInstance();
+
+    final id = prefs.getString('id');
     final username = prefs.getString('username');
-    final email = prefs.getString('email');
     final fullname = prefs.getString('fullname');
+    final email = prefs.getString('email');
     final password = prefs.getString('password');
 
+    // Pastikan semua data penting tersedia
     if (username != null && email != null && password != null) {
       _loggedInUser = User(
+        id: id ?? username, // fallback: gunakan username sebagai id
         username: username,
         fullname: fullname ?? '',
         email: email,
@@ -62,7 +75,7 @@ class UserService {
     await prefs.clear();
   }
 
-  // ✅ Update data user
+  // ✅ Update data user (misal ganti nama/email)
   static void updateUser(User updatedUser) {
     final index = _users.indexWhere((u) => u.username == updatedUser.username);
     if (index != -1) {

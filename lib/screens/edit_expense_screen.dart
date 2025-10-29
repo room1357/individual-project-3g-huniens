@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pemrograman_mobile/services/user_service.dart';
 import '../models/expense.dart';
 
 class EditExpenseScreen extends StatefulWidget {
@@ -65,7 +66,8 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
       amount: double.tryParse(_amountController.text) ?? 0,
       category: _selectedCategory,
       date: _selectedDate,
-      description: _descriptionController.text,
+      description: _descriptionController.text, 
+      usernameOwner: UserService.loggedInUser?.username ?? '',
     );
 
     Navigator.pop(context, updatedExpense);
@@ -95,7 +97,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(labelText: 'Kategori'),
                 items: const [
                   'Makanan',
