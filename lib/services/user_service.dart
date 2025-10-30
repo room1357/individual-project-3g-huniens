@@ -96,4 +96,9 @@ class UserService {
       _loggedInUser = updatedUser;
     }
   }
+
+  static List<String> getAllUsernames() {
+  return _users.map((u) => u.username).toList();
+}
+
 }

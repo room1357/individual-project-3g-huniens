@@ -7,18 +7,20 @@ class ExpenseService {
   static Future<void> initialize() async {
     final user = UserService.loggedInUser;
     if (user != null) {
-      _expenses.clear(); // clear data lama
+      _expenses.clear();
       await _loadExpensesForUser(user.username);
-      await _loadCategoriesForUser(user.username); // ✅ load kategori user
+      await _loadCategoriesForUser(user.username);
     }
   }
 
   // Cache in-memory
   static final List<Expense> _expenses = [];
-  static final Map<String, List<String>> _userCategories = {}; // ✅ per user
+  static final Map<String, List<String>> _userCategories = {};
 
   static String _prefsKeyFor(String username) => 'expenses_$username';
-  static String _categoryKeyFor(String username) => 'categories_$username'; // ✅
+  static String _categoryKeyFor(String username) => 'categories_$username';
+  static String _sharedPrefsKeyFor(String username) =>
+      'shared_expenses_$username';
 
   // ===================== EXPENSE SECTION =====================
 
@@ -27,11 +29,47 @@ class ExpenseService {
     await _saveExpensesForUser(expense.usernameOwner);
   }
 
+  static Future<void> addSharedExpense(Expense expense) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Simpan untuk pembuat
+    final ownerKey = _sharedPrefsKeyFor(expense.usernameOwner);
+    final rawOwner = prefs.getString(ownerKey);
+    final ownerList = rawOwner != null ? json.decode(rawOwner) : [];
+    ownerList.add(expense.toJson());
+    await prefs.setString(ownerKey, json.encode(ownerList));
+
+    // Simpan juga ke teman-temannya
+    for (final friend in expense.sharedWith) {
+    final friendKey = _sharedPrefsKeyFor(friend);
+    final rawFriend = prefs.getString(friendKey);
+    final friendList = rawFriend != null ? json.decode(rawFriend) : [];
+
+    // jangan ubah nominal, simpan apa adanya
+    friendList.add(expense.toJson());
+
+    await prefs.setString(friendKey, json.encode(friendList));
+    }
+  }
+
   static Future<List<Expense>> getUserExpenses() async {
     final user = UserService.loggedInUser;
     if (user == null) return [];
     await _loadExpensesForUser(user.username);
-    return _expenses.where((e) => e.usernameOwner == user.username).toList();
+    return _expenses
+        .where((e) => e.usernameOwner == user.username && !e.isShared)
+        .toList();
+  }
+
+  static Future<List<Expense>> getSharedExpenses() async {
+    final user = UserService.loggedInUser;
+    if (user == null) return [];
+    final prefs = await SharedPreferences.getInstance();
+    final key = _sharedPrefsKeyFor(user.username);
+    final raw = prefs.getString(key);
+    if (raw == null) return [];
+    final List<dynamic> list = json.decode(raw);
+    return list.map((e) => Expense.fromJson(e)).toList();
   }
 
   static Future<List<Expense>> getAll() async {
@@ -83,14 +121,12 @@ class ExpenseService {
 
   // ===================== CATEGORY SECTION =====================
 
-  // ✅ Ambil semua kategori milik user
   static List<String> getAllCategories() {
     final user = UserService.loggedInUser;
     if (user == null) return [];
     return _userCategories[user.username] ?? _defaultCategories;
   }
 
-  // ✅ Kategori default (kalau user baru)
   static const List<String> _defaultCategories = [
     'Makanan',
     'Transportasi',
@@ -99,7 +135,6 @@ class ExpenseService {
     'Pendidikan',
   ];
 
-  // ✅ Tambah kategori baru
   static Future<void> addCategory(String category) async {
     final user = UserService.loggedInUser;
     if (user == null) return;
@@ -112,7 +147,6 @@ class ExpenseService {
     }
   }
 
-  // ✅ Hapus kategori
   static Future<void> deleteCategory(String category) async {
     final user = UserService.loggedInUser;
     if (user == null) return;
@@ -125,7 +159,6 @@ class ExpenseService {
     }
   }
 
-  // ✅ Simpan kategori user
   static Future<void> _saveCategoriesForUser(String username) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _categoryKeyFor(username);
@@ -133,14 +166,12 @@ class ExpenseService {
     await prefs.setString(key, json.encode(categories));
   }
 
-  // ✅ Load kategori user
   static Future<void> _loadCategoriesForUser(String username) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _categoryKeyFor(username);
     final raw = prefs.getString(key);
 
     if (raw == null) {
-      // 🔥 Awal kosong (tidak set default)
       _userCategories[username] = [];
       await _saveCategoriesForUser(username);
       return;
@@ -156,7 +187,8 @@ class ExpenseService {
     _expenses.removeWhere((e) => e.usernameOwner == username);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_prefsKeyFor(username));
-    await prefs.remove(_categoryKeyFor(username)); // ✅ clear kategori juga
+    await prefs.remove(_categoryKeyFor(username));
+    await prefs.remove(_sharedPrefsKeyFor(username));
   }
 
   static List<Expense> getExpensesByUser(String username) {

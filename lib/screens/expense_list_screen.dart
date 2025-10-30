@@ -80,23 +80,24 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: categories
-                  .map(
-                    (category) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(category),
-                        selected: selectedCategory == category,
-                        onSelected: (selected) {
-                          setState(() {
-                            selectedCategory = category;
-                            _filterExpenses();
-                          });
-                        },
-                      ),
-                    ),
-                  )
-                  .toList(),
+              children:
+                  categories
+                      .map(
+                        (category) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(category),
+                            selected: selectedCategory == category,
+                            onSelected: (selected) {
+                              setState(() {
+                                selectedCategory = category;
+                                _filterExpenses();
+                              });
+                            },
+                          ),
+                        ),
+                      )
+                      .toList(),
             ),
           ),
 
@@ -124,13 +125,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final path =
-                        await StorageService.exportToCSV(filteredExpenses);
+                    final path = await StorageService.exportToCSV(
+                      filteredExpenses,
+                    );
                     // ignore: use_build_context_synchronously
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('File berhasil disimpan $path'),
-                      ),
+                      SnackBar(content: Text('File berhasil disimpan $path')),
                     );
                   },
                   icon: const Icon(Icons.table_chart),
@@ -138,13 +138,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                 ),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final path =
-                        await StorageService.exportToPDF(filteredExpenses);
+                    final path = await StorageService.exportToPDF(
+                      filteredExpenses,
+                    );
                     // ignore: use_build_context_synchronously
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('File berhasil disimpan $path'),
-                      ),
+                      SnackBar(content: Text('File berhasil disimpan $path')),
                     );
                   },
                   icon: const Icon(Icons.picture_as_pdf),
@@ -156,53 +155,59 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
           // 📋 ListView
           Expanded(
-            child: filteredExpenses.isEmpty
-                ? const Center(
-                    child: Text('Tidak ada pengeluaran ditemukan'),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: filteredExpenses.length,
-                    itemBuilder: (context, index) {
-                      final expense = filteredExpenses[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        elevation: 2,
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor:
-                                _getCategoryColor(expense.category),
-                            child: Icon(
-                              _getCategoryIcon(expense.category),
-                              color: Colors.white,
-                              size: 20,
+            child:
+                filteredExpenses.isEmpty
+                    ? const Center(
+                      child: Text('Tidak ada pengeluaran ditemukan'),
+                    )
+                    : ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: filteredExpenses.length,
+                      itemBuilder: (context, index) {
+                        final expense = filteredExpenses[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          elevation: 2,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: _getCategoryColor(
+                                expense.category,
+                              ),
+                              child: Icon(
+                                _getCategoryIcon(expense.category),
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
-                          ),
-                          title: Text(
-                            expense.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
+                            title: Text(
+                              expense.isShared
+                                  ? '${expense.title} (Patungan)'
+                                  : expense.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                          subtitle: Text(
-                            '${expense.category} • ${expense.formattedDate}',
-                          ),
-                          trailing: Text(
-                            expense.formattedAmount,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.red[600],
+                            subtitle: Text(
+                              expense.isShared
+                                  ? '👥 Bersama: ${expense.sharedWith.join(", ")}\n${expense.category} • ${expense.formattedDate}'
+                                  : '${expense.category} • ${expense.formattedDate}',
                             ),
+                            trailing: Text(
+                              expense.formattedAmount,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.red[600],
+                              ),
+                            ),
+                            onTap: () => _showExpenseDetails(context, expense),
                           ),
-                          onTap: () => _showExpenseDetails(context, expense),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
@@ -229,20 +234,21 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   // 🔹 Filter data berdasarkan kategori & pencarian
   void _filterExpenses() {
     setState(() {
-      filteredExpenses = expenses.where((expense) {
-        bool matchesSearch =
-            searchController.text.isEmpty ||
-            expense.title
-                .toLowerCase()
-                .contains(searchController.text.toLowerCase()) ||
-            expense.description
-                .toLowerCase()
-                .contains(searchController.text.toLowerCase());
-        bool matchesCategory =
-            selectedCategory == 'Semua' ||
-            expense.category == selectedCategory;
-        return matchesSearch && matchesCategory;
-      }).toList();
+      filteredExpenses =
+          expenses.where((expense) {
+            bool matchesSearch =
+                searchController.text.isEmpty ||
+                expense.title.toLowerCase().contains(
+                  searchController.text.toLowerCase(),
+                ) ||
+                expense.description.toLowerCase().contains(
+                  searchController.text.toLowerCase(),
+                );
+            bool matchesCategory =
+                selectedCategory == 'Semua' ||
+                expense.category == selectedCategory;
+            return matchesSearch && matchesCategory;
+          }).toList();
     });
   }
 
@@ -309,45 +315,46 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   void _showExpenseDetails(BuildContext context, Expense expense) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(expense.title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Jumlah: ${expense.formattedAmount}'),
-            const SizedBox(height: 8),
-            Text('Kategori: ${expense.category}'),
-            const SizedBox(height: 8),
-            Text('Tanggal: ${expense.formattedDate}'),
-            const SizedBox(height: 8),
-            Text('Deskripsi: ${expense.description}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final updatedExpense = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditExpenseScreen(expense: expense),
-                ),
-              );
+      builder:
+          (context) => AlertDialog(
+            title: Text(expense.title),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Jumlah: ${expense.formattedAmount}'),
+                const SizedBox(height: 8),
+                Text('Kategori: ${expense.category}'),
+                const SizedBox(height: 8),
+                Text('Tanggal: ${expense.formattedDate}'),
+                const SizedBox(height: 8),
+                Text('Deskripsi: ${expense.description}'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Tutup'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final updatedExpense = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditExpenseScreen(expense: expense),
+                    ),
+                  );
 
-              if (updatedExpense != null && updatedExpense is Expense) {
-                ExpenseService.updateExpense(expense.id, updatedExpense);
-                _loadExpenses();
-              }
-            },
-            child: const Text('Edit'),
+                  if (updatedExpense != null && updatedExpense is Expense) {
+                    ExpenseService.updateExpense(expense.id, updatedExpense);
+                    _loadExpenses();
+                  }
+                },
+                child: const Text('Edit'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
