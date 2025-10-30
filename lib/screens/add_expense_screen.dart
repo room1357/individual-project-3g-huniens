@@ -30,11 +30,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void _loadCategories() {
     final categoryList = ExpenseService.getAllCategories();
     setState(() {
-      _categories =
-          categoryList.isEmpty
-              ? ['Makanan', 'Transportasi', 'Utilitas', 'Hiburan', 'Pendidikan']
-              : categoryList.toList();
-      _selectedCategory = _categories.first;
+      // langsung ambil data dari service tanpa fallback dummy
+      _categories = categoryList.toList();
+      _selectedCategory =
+          _categories.isNotEmpty ? _categories.first : null; // boleh null
     });
   }
 

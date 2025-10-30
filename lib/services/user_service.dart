@@ -5,17 +5,24 @@ class UserService {
   static final List<User> _users = [];
   static User? _loggedInUser;
 
-  // ✅ Register user baru
   static Future<void> register(User user) async {
     _users.add(user);
 
-    // Simpan juga ke local storage supaya bisa login otomatis
+    // Simpan data user ke local storage (tapi jangan auto-login)
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('id', user.id);
-    await prefs.setString('username', user.username);
-    await prefs.setString('fullname', user.fullname);
-    await prefs.setString('email', user.email);
-    await prefs.setString('password', user.password);
+    List<String> existingUsers = prefs.getStringList('users') ?? [];
+
+    // Simpan data user sebagai JSON string agar bisa banyak user
+    final newUserData = {
+      'id': user.id,
+      'username': user.username,
+      'fullname': user.fullname,
+      'email': user.email,
+      'password': user.password,
+    };
+
+    existingUsers.add(newUserData.toString());
+    await prefs.setStringList('users', existingUsers);
   }
 
   // ✅ Login pakai username atau email
@@ -72,7 +79,13 @@ class UserService {
   static Future<void> logout() async {
     _loggedInUser = null;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+
+    // Hapus hanya data login user, bukan semua data
+    await prefs.remove('id');
+    await prefs.remove('username');
+    await prefs.remove('fullname');
+    await prefs.remove('email');
+    await prefs.remove('password');
   }
 
   // ✅ Update data user (misal ganti nama/email)

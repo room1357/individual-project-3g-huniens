@@ -19,9 +19,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     _loadExpenses();
   }
 
-  void _loadExpenses() {
-    setState(() async {
-      expenses = await ExpenseService.getAll();
+  Future<void> _loadExpenses() async {
+    // Ambil data dulu, jangan di dalam setState
+    final data = await ExpenseService.getAll();
+
+    // Baru update state setelah data didapat
+    setState(() {
+      expenses = data;
     });
   }
 
@@ -60,20 +64,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               height: 250,
               child: PieChart(
                 PieChartData(
-                  sections: categoryTotals.entries.map((entry) {
-                    return PieChartSectionData(
-                      title: entry.key,
-                      value: entry.value,
-                      color: Colors.primaries[
-                          categoryTotals.keys.toList().indexOf(entry.key) %
-                              Colors.primaries.length],
-                      radius: 80,
-                      titleStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12),
-                    );
-                  }).toList(),
+                  sections:
+                      categoryTotals.entries.map((entry) {
+                        return PieChartSectionData(
+                          title: entry.key,
+                          value: entry.value,
+                          color:
+                              Colors.primaries[categoryTotals.keys
+                                      .toList()
+                                      .indexOf(entry.key) %
+                                  Colors.primaries.length],
+                          radius: 80,
+                          titleStyle: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        );
+                      }).toList(),
                 ),
               ),
             ),
@@ -83,13 +91,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             // LIST DETAIL PER KATEGORI
             Expanded(
               child: ListView(
-                children: categoryTotals.entries.map((entry) {
-                  return ListTile(
-                    leading: const Icon(Icons.category),
-                    title: Text(entry.key),
-                    trailing: Text('Rp ${entry.value.toStringAsFixed(0)}'),
-                  );
-                }).toList(),
+                children:
+                    categoryTotals.entries.map((entry) {
+                      return ListTile(
+                        leading: const Icon(Icons.category),
+                        title: Text(entry.key),
+                        trailing: Text('Rp ${entry.value.toStringAsFixed(0)}'),
+                      );
+                    }).toList(),
               ),
             ),
           ],

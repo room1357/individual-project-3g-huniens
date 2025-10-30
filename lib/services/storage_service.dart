@@ -1,15 +1,18 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:io' show File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:csv/csv.dart';
-import 'dart:convert';
 import '../models/expense.dart';
+import 'package:downloads_path_provider_28/downloads_path_provider_28.dart';
+import 'package:universal_html/html.dart' as html;
 
 class StorageService {
   // ============================================================
-  // 📄 Export ke PDF (Mobile-friendly)
+  // 📄 Export ke PDF (Support: Web & Mobile)
   // ============================================================
   static Future<String> exportToPDF(List<Expense> expenses) async {
     final pdf = pw.Document();
@@ -27,7 +30,7 @@ class StorageService {
               ),
             ),
             pw.SizedBox(height: 20),
-            pw.TableHelper.fromTextArray(
+            pw.Table.fromTextArray(
               headers: ["Judul", "Jumlah", "Kategori", "Tanggal"],
               data: expenses.map((e) {
                 return [
@@ -49,11 +52,18 @@ class StorageService {
     final bytes = await pdf.save();
 
     if (kIsWeb) {
-      // 🌐 Jika dijalankan di web, simpan sementara ke base64 (tidak error)
-      return base64Encode(bytes);
+      // 🌐 WEB: langsung trigger download via browser
+      final blob = html.Blob([bytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', 'Laporan_Pengeluaran.pdf')
+        ..click();
+      html.Url.revokeObjectUrl(url);
+      return "sebagai PDF";
     } else {
-      // 📱 Simpan ke file lokal (Android/iOS)
-      final dir = await getApplicationDocumentsDirectory();
+      // 📱 MOBILE: simpan ke folder Downloads
+      final dir = await DownloadsPathProvider.downloadsDirectory ??
+          await getApplicationDocumentsDirectory();
       final path = "${dir.path}/Laporan_Pengeluaran.pdf";
       final file = File(path);
       await file.writeAsBytes(bytes);
@@ -62,11 +72,11 @@ class StorageService {
   }
 
   // ============================================================
-  // 📊 Export ke CSV (Mobile-friendly)
+  // 📊 Export ke CSV (Support: Web & Mobile)
   // ============================================================
   static Future<String> exportToCSV(List<Expense> expenses) async {
     final List<List<dynamic>> rows = [
-      ["Judul", "Jumlah", "Kategori", "Tanggal"]
+      ["Judul", "Jumlah", "Kategori", "Tanggal"],
     ];
 
     for (var e in expenses) {
@@ -82,11 +92,18 @@ class StorageService {
     final bytes = utf8.encode(csvData);
 
     if (kIsWeb) {
-      // 🌐 Web → return base64 data
-      return base64Encode(bytes);
+      // 🌐 WEB: langsung trigger download CSV via browser
+      final blob = html.Blob([bytes], 'text/csv');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', 'Laporan_Pengeluaran.csv')
+        ..click();
+      html.Url.revokeObjectUrl(url);
+      return "sebagai CSV";
     } else {
-      // 📱 Android/iOS → simpan ke file
-      final dir = await getApplicationDocumentsDirectory();
+      // 📱 MOBILE: simpan ke folder Downloads
+      final dir = await DownloadsPathProvider.downloadsDirectory ??
+          await getApplicationDocumentsDirectory();
       final path = "${dir.path}/Laporan_Pengeluaran.csv";
       final file = File(path);
       await file.writeAsBytes(bytes);
