@@ -23,7 +23,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   // 🔥 Tambahan untuk fitur Shared Expense
   bool _isShared = false;
-  List<String> _selectedUsers = [];
+  final List<String> _selectedUsers = [];
   List<String> _allUsers = [];
 
   @override
@@ -151,7 +151,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(labelText: "Kategori"),
                 items:
                     _categories

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+//import 'dart:typed_data';
 import 'dart:io' show File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
@@ -19,33 +19,35 @@ class StorageService {
 
     pdf.addPage(
       pw.Page(
-        build: (pw.Context context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(
-              "Laporan Pengeluaran",
-              style: pw.TextStyle(
-                fontSize: 20,
-                fontWeight: pw.FontWeight.bold,
-              ),
+        build:
+            (pw.Context context) => pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  "Laporan Pengeluaran",
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                pw.TableHelper.fromTextArray(
+                  headers: ["Judul", "Jumlah", "Kategori", "Tanggal"],
+                  data:
+                      expenses.map((e) {
+                        return [
+                          e.title,
+                          e.amount.toString(),
+                          e.category,
+                          "${e.date.day}/${e.date.month}/${e.date.year}",
+                        ];
+                      }).toList(),
+                  headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+                  headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  cellAlignment: pw.Alignment.centerLeft,
+                ),
+              ],
             ),
-            pw.SizedBox(height: 20),
-            pw.Table.fromTextArray(
-              headers: ["Judul", "Jumlah", "Kategori", "Tanggal"],
-              data: expenses.map((e) {
-                return [
-                  e.title,
-                  e.amount.toString(),
-                  e.category,
-                  "${e.date.day}/${e.date.month}/${e.date.year}",
-                ];
-              }).toList(),
-              headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-              cellAlignment: pw.Alignment.centerLeft,
-            ),
-          ],
-        ),
       ),
     );
 
@@ -55,14 +57,15 @@ class StorageService {
       // 🌐 WEB: langsung trigger download via browser
       final blob = html.Blob([bytes], 'application/pdf');
       final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
+      html.AnchorElement(href: url)
         ..setAttribute('download', 'Laporan_Pengeluaran.pdf')
         ..click();
       html.Url.revokeObjectUrl(url);
       return "sebagai PDF";
     } else {
       // 📱 MOBILE: simpan ke folder Downloads
-      final dir = await DownloadsPathProvider.downloadsDirectory ??
+      final dir =
+          await DownloadsPathProvider.downloadsDirectory ??
           await getApplicationDocumentsDirectory();
       final path = "${dir.path}/Laporan_Pengeluaran.pdf";
       final file = File(path);
@@ -95,14 +98,17 @@ class StorageService {
       // 🌐 WEB: langsung trigger download CSV via browser
       final blob = html.Blob([bytes], 'text/csv');
       final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
+
+      html.AnchorElement(href: url)
         ..setAttribute('download', 'Laporan_Pengeluaran.csv')
         ..click();
+
       html.Url.revokeObjectUrl(url);
       return "sebagai CSV";
     } else {
       // 📱 MOBILE: simpan ke folder Downloads
-      final dir = await DownloadsPathProvider.downloadsDirectory ??
+      final dir =
+          await DownloadsPathProvider.downloadsDirectory ??
           await getApplicationDocumentsDirectory();
       final path = "${dir.path}/Laporan_Pengeluaran.csv";
       final file = File(path);
