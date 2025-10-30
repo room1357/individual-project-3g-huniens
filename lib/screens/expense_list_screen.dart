@@ -332,10 +332,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
               ],
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Tutup'),
-              ),
+              // 🔹 Tombol Edit
               TextButton(
                 onPressed: () async {
                   Navigator.pop(context);
@@ -352,6 +349,54 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                   }
                 },
                 child: const Text('Edit'),
+              ),
+
+              // 🔹 Tombol Hapus
+              TextButton(
+                onPressed: () async {
+                  final confirm = await showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Konfirmasi Hapus'),
+                          content: const Text(
+                            'Yakin ingin menghapus pengeluaran ini?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Batal'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text(
+                                'Hapus',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+
+                  if (confirm == true) {
+                    ExpenseService.deleteExpense(expense.id);
+                    Navigator.pop(context);
+                    _loadExpenses();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Pengeluaran berhasil dihapus'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+
+              // 🔹 Tombol Tutup
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Tutup'),
               ),
             ],
           ),

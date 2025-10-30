@@ -21,16 +21,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   List<String> _categories = [];
   DateTime _selectedDate = DateTime.now();
 
-  // 🔥 Tambahan untuk fitur Shared Expense
-  bool _isShared = false;
-  final List<String> _selectedUsers = [];
-  List<String> _allUsers = [];
-
   @override
   void initState() {
     super.initState();
     _loadCategories();
-    _loadUsers();
   }
 
   void _loadCategories() {
@@ -41,16 +35,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     });
   }
 
-  // 🔥 Ambil semua user yang terdaftar
-  void _loadUsers() {
-    final users = UserService.getAllUsernames();
-    final currentUser = UserService.loggedInUser?.username;
-    setState(() {
-      _allUsers = users.where((u) => u != currentUser).toList();
-    });
-  }
-
-  /// ✅ Fungsi untuk menyimpan data expense
+  /// ✅ Fungsi untuk menyimpan data pengeluaran biasa
   void _saveExpense() async {
     final currentUser = UserService.loggedInUser;
 
@@ -63,7 +48,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     if (!_formKey.currentState!.validate()) return;
 
-    // 🔥 Buat objek expense baru
     final newExpense = Expense(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleController.text,
@@ -72,40 +56,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       date: _selectedDate,
       description: _descriptionController.text,
       usernameOwner: currentUser.username,
-      isShared: _isShared,
-      sharedWith: _selectedUsers,
+      isShared: false,
+      sharedWith: [],
     );
 
     // Simpan ke service
     await ExpenseService.addExpense(newExpense);
-
-    // 🔥 Kalau bukan shared, simpan ke expense pribadi
-    if (!_isShared) {
-      await ExpenseService.addExpense(newExpense);
-    } else {
-      // ✅ Kalau shared, simpan ke shared_expenses_<username>
-      await ExpenseService.addSharedExpense(newExpense);
-
-      // 🔥 Simpan juga ke akun teman yang ikut patungan
-      if (_selectedUsers.isNotEmpty) {
-        for (final friend in _selectedUsers) {
-          final sharedCopy = Expense(
-            id: newExpense.id,
-            title: newExpense.title,
-            amount: newExpense.amount / (_selectedUsers.length + 1),
-            category: newExpense.category,
-            date: newExpense.date,
-            description:
-                "${newExpense.description} (Patungan bareng ${currentUser.username})",
-            usernameOwner: friend,
-            isShared: true,
-            sharedWith: [currentUser.username, ..._selectedUsers],
-          );
-          // ✅ simpan di folder shared juga
-          await ExpenseService.addExpense(sharedCopy);
-        }
-      }
-    }
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -130,11 +86,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: "Judul"),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? "Judul wajib diisi"
-                            : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? "Judul wajib diisi" : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -151,15 +104,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _selectedCategory,
+                value: _selectedCategory,
                 decoration: const InputDecoration(labelText: "Kategori"),
-                items:
-                    _categories
-                        .map(
-                          (cat) =>
-                              DropdownMenuItem(value: cat, child: Text(cat)),
-                        )
-                        .toList(),
+                items: _categories
+                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                    .toList(),
                 onChanged: (value) {
                   setState(() => _selectedCategory = value);
                 },
@@ -170,44 +119,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 decoration: const InputDecoration(labelText: "Deskripsi"),
                 maxLines: 2,
               ),
-              const SizedBox(height: 12),
-
-              // 🔥 Shared Expense Toggle
-              SwitchListTile(
-                title: const Text("Shared Expense (Patungan)"),
-                value: _isShared,
-                onChanged: (value) {
-                  setState(() => _isShared = value);
-                },
-              ),
-
-              // 🔥 Daftar user yang bisa dipilih
-              if (_isShared && _allUsers.isNotEmpty) ...[
-                const Text("Pilih teman yang ikut patungan:"),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  children:
-                      _allUsers
-                          .map(
-                            (u) => FilterChip(
-                              label: Text(u),
-                              selected: _selectedUsers.contains(u),
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedUsers.add(u);
-                                  } else {
-                                    _selectedUsers.remove(u);
-                                  }
-                                });
-                              },
-                            ),
-                          )
-                          .toList(),
-                ),
-              ],
-
               const SizedBox(height: 12),
               Row(
                 children: [
