@@ -81,7 +81,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
@@ -243,7 +243,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                                   final path = await StorageService.exportToCSV(
                                     filteredExpenses,
                                   );
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('CSV disimpan di $path'),
@@ -272,7 +272,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                                   final path = await StorageService.exportToPDF(
                                     filteredExpenses,
                                   );
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('PDF disimpan di $path'),
@@ -356,7 +356,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                                               height: 42,
                                               decoration: BoxDecoration(
                                                 color: _getCategoryColor(expense.category)
-                                                    .withOpacity(0.15),
+                                                    .withValues(alpha: 0.15),
                                                 borderRadius: BorderRadius.circular(10),
                                               ),
                                               child: Icon(
@@ -585,7 +585,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _getCategoryColor(expense.category).withOpacity(0.2),
+                color: _getCategoryColor(expense.category).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -675,6 +675,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
               if (confirm == true) {
                 ExpenseService.deleteExpense(expense.id);
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 _loadExpenses();
 

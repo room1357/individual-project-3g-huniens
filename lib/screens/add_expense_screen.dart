@@ -156,7 +156,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
@@ -253,7 +253,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                           // Kategori
                           DropdownButtonFormField<String>(
-                            value: _selectedCategory,
+                            initialValue: _selectedCategory,
                             decoration: InputDecoration(
                               labelText: 'Kategori',
                               labelStyle: TextStyle(color: Colors.grey.shade600),

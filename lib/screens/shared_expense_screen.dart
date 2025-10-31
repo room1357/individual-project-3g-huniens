@@ -140,7 +140,7 @@ class _SharedExpenseScreenState extends State<SharedExpenseScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: selectedCategory,
+                      initialValue: selectedCategory,
                       decoration: InputDecoration(
                         labelText: 'Kategori',
                         prefixIcon: Icon(
@@ -327,7 +327,7 @@ class _SharedExpenseScreenState extends State<SharedExpenseScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(

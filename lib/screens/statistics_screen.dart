@@ -65,7 +65,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
@@ -156,7 +156,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
@@ -381,7 +381,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: purpleColors[index % purpleColors.length]
-                                        .withOpacity(0.1),
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Row(
@@ -428,7 +428,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                     ],
                                   ),
                                 );
-                              }).toList(),
+                              })
                             ],
                           ),
                         ),

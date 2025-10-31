@@ -142,7 +142,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
@@ -385,7 +385,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                         height: 42,
                                         decoration: BoxDecoration(
                                           color: _getCategoryColor(index)
-                                              .withOpacity(0.15),
+                                              .withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: Icon(
