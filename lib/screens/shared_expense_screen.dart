@@ -34,7 +34,6 @@ class _SharedExpenseScreenState extends State<SharedExpenseScreen> {
     final currentUser = UserService.loggedInUser;
     if (currentUser == null) return;
 
-    // Ambil kategori & users (synchronous sesuai implementasimu)
     final categories = ExpenseService.getAllCategories();
     final allUsers = UserService.getAllUsernames();
     final selectableUsers =
@@ -46,107 +45,211 @@ class _SharedExpenseScreenState extends State<SharedExpenseScreen> {
     await showDialog(
       context: context,
       builder: (context) {
-        // gunakan StatefulBuilder supaya state lokal dialog bisa berubah (selected users/category)
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: const Text('Tambah Shared Expense'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.group_add_rounded,
+                      color: Colors.deepPurple.shade400,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Tambah Patungan',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ],
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Judul Pengeluaran',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: const InputDecoration(labelText: 'Deskripsi'),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Jumlah (Rp)',
+                      decoration: InputDecoration(
+                        labelText: 'Judul',
+                        prefixIcon: Icon(
+                          Icons.title_rounded,
+                          color: Colors.deepPurple.shade400,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.deepPurple.shade400,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Dropdown kategori berdasarkan data dari ExpenseService
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Deskripsi',
+                        prefixIcon: Icon(
+                          Icons.description_rounded,
+                          color: Colors.deepPurple.shade400,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.deepPurple.shade400,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Jumlah (Rp)',
+                        prefixIcon: Icon(
+                          Icons.attach_money_rounded,
+                          color: Colors.deepPurple.shade400,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.deepPurple.shade400,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      initialValue: selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Kategori'),
-                      items:
-                          (categories.isNotEmpty ? categories : ['Umum'])
-                              .map(
-                                (c) =>
-                                    DropdownMenuItem(value: c, child: Text(c)),
-                              )
-                              .toList(),
+                      value: selectedCategory,
+                      decoration: InputDecoration(
+                        labelText: 'Kategori',
+                        prefixIcon: Icon(
+                          Icons.category_rounded,
+                          color: Colors.deepPurple.shade400,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.deepPurple.shade400,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      items: (categories.isNotEmpty ? categories : ['Umum'])
+                          .map(
+                            (c) => DropdownMenuItem(value: c, child: Text(c)),
+                          )
+                          .toList(),
                       onChanged: (v) {
                         if (v == null) return;
                         setStateDialog(() => selectedCategory = v);
                       },
                     ),
-                    const SizedBox(height: 12),
-                    // Multi-select chips untuk pilih user
+                    const SizedBox(height: 16),
                     if (selectableUsers.isNotEmpty) ...[
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Pilih teman yang ikut (tap untuk pilih):'),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.people_rounded,
+                              size: 18,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Pilih teman yang ikut:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children:
-                            selectableUsers.map((u) {
-                              final selected = selectedUsers.contains(u);
-                              return FilterChip(
-                                label: Text(u),
-                                selected: selected,
-                                onSelected: (val) {
-                                  setStateDialog(() {
-                                    if (val) {
-                                      selectedUsers.add(u);
-                                    } else {
-                                      selectedUsers.remove(u);
-                                    }
-                                  });
-                                },
-                              );
-                            }).toList(),
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: selectableUsers.map((u) {
+                          final selected = selectedUsers.contains(u);
+                          return FilterChip(
+                            label: Text(u),
+                            selected: selected,
+                            selectedColor: Colors.deepPurple.shade100,
+                            checkmarkColor: Colors.deepPurple.shade600,
+                            backgroundColor: Colors.grey.shade100,
+                            labelStyle: TextStyle(
+                              color: selected
+                                  ? Colors.deepPurple.shade600
+                                  : Colors.grey.shade700,
+                              fontWeight: selected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                            onSelected: (val) {
+                              setStateDialog(() {
+                                if (val) {
+                                  selectedUsers.add(u);
+                                } else {
+                                  selectedUsers.remove(u);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
                       ),
                     ] else
-                      const Padding(
-                        padding: EdgeInsets.only(top: 8.0),
-                        child: Text('Belum ada user lain terdaftar.'),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'Belum ada user lain terdaftar.',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
                       ),
                   ],
                 ),
               ),
               actions: [
                 TextButton(
+                  onPressed: () => Navigator.pop(context),
                   child: const Text('Batal'),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
                 ),
                 ElevatedButton(
-                  child: const Text('Simpan'),
                   onPressed: () async {
                     final title = titleController.text.trim();
                     final desc = descriptionController.text.trim();
                     final amountText = amountController.text.trim();
 
                     if (title.isEmpty || amountText.isEmpty) {
-                      // Bisa ditambahkan SnackBar untuk validasi
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Judul dan jumlah tidak boleh kosong'),
+                        SnackBar(
+                          content: const Text('Judul dan jumlah wajib diisi'),
+                          backgroundColor: Colors.deepPurple,
+                          behavior: SnackBarBehavior.floating,
                         ),
                       );
                       return;
@@ -154,7 +257,6 @@ class _SharedExpenseScreenState extends State<SharedExpenseScreen> {
 
                     final amount = double.tryParse(amountText) ?? 0;
 
-                    // Buat objek Expense (nominal tetap sama, tidak dibagi)
                     final newExpense = Expense(
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       title: title,
@@ -168,16 +270,29 @@ class _SharedExpenseScreenState extends State<SharedExpenseScreen> {
                       sharedWith: List<String>.from(selectedUsers),
                     );
 
-                    // 🔹 Simpan shared expense (async call)
                     await ExpenseService.addSharedExpense(newExpense);
 
-                    // 🔹 Setelah async selesai, langsung cek mounted dulu
                     if (!context.mounted) return;
 
-                    // 🔹 Baru gunakan context dengan aman
                     Navigator.pop(context);
-                    // await _loadSharedExpenses(); // aktifkan ini kalau kamu mau refresh list otomatis
+                    _loadSharedExpenses();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Patungan berhasil ditambahkan'),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple.shade400,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Simpan'),
                 ),
               ],
             );
@@ -190,58 +305,245 @@ class _SharedExpenseScreenState extends State<SharedExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Shared Expenses"),
-        backgroundColor: Colors.teal,
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadSharedExpenses,
-        child:
-            sharedExpenses.isEmpty
-                ? const Center(
-                  child: Text(
-                    'Belum ada pengeluaran bersama.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
-                : ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: sharedExpenses.length,
-                  itemBuilder: (context, index) {
-                    final expense = sharedExpenses[index];
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 6,
-                        horizontal: 8,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.deepPurple.shade400,
+              Colors.deepPurple.shade700,
+              Colors.purple.shade900,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.teal,
-                          child: const Icon(Icons.group, color: Colors.white),
-                        ),
-                        title: Text(expense.title),
-                        subtitle: Text(
-                          "${expense.category} • ${expense.formattedDate}\n"
-                          "Dibuat oleh: ${expense.usernameOwner}\n"
-                          "Dibagikan ke: ${expense.sharedWith.join(', ')}",
-                        ),
-                        trailing: Text(
-                          expense.formattedAmount,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Shared Expenses',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        isThreeLine: true,
+                          SizedBox(height: 4),
+                          Text(
+                            'Pengeluaran patungan',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
+              ),
+
+              // Content Container
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: RefreshIndicator(
+                    onRefresh: _loadSharedExpenses,
+                    color: Colors.deepPurple.shade400,
+                    child: sharedExpenses.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.group_rounded,
+                                  size: 64,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Belum ada pengeluaran bersama',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(20),
+                            itemCount: sharedExpenses.length,
+                            itemBuilder: (context, index) {
+                              final expense = sharedExpenses[index];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.shade200,
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 42,
+                                            height: 42,
+                                            decoration: BoxDecoration(
+                                              color: Colors.purple.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Icon(
+                                              Icons.group_rounded,
+                                              color: Colors.deepPurple.shade400,
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  expense.title,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 3),
+                                                Text(
+                                                  '${expense.category} • ${expense.formattedDate}',
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade600,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Text(
+                                            expense.formattedAmount,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                              color: Colors.red.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.purple.shade50,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.person_rounded,
+                                                  size: 14,
+                                                  color: Colors.purple.shade600,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  'Dibuat oleh: ${expense.usernameOwner}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        Colors.purple.shade600,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Icon(
+                                                  Icons.people_rounded,
+                                                  size: 14,
+                                                  color: Colors.purple.shade600,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Dengan: ${expense.sharedWith.join(", ")}',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors
+                                                          .purple.shade600,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddSharedExpenseDialog,
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.deepPurple.shade400,
         child: const Icon(Icons.add),
       ),
     );
